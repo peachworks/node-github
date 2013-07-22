@@ -678,7 +678,7 @@ var Client = module.exports = function(config) {
 
     curl.setopt('CONNECTTIMEOUT', 5);
     curl.setopt('HEADER' , true);
-    var p = console.log;
+
     var data = ''
     var heads = {}
 
@@ -697,7 +697,7 @@ var Client = module.exports = function(config) {
         }
         if(check) {
         pieces = t.split(':');
-        console.log(pieces)
+
         if(pieces.length >= 2 ) {
             heads[pieces[0]] = pieces.slice(1).join(" ").trim()
         }
@@ -714,14 +714,10 @@ var Client = module.exports = function(config) {
 // curl.close() should be called in event 'error' and 'end' if the curl won't use any more.
 // or the resource will not release until V8 garbage mark sweep.
     curl.on('error', function(e) {
-        p("error: " + e.message)
         curl.close();
     });
 
     curl.on('end', function() {
-        p('code: ' + curl.getinfo('RESPONSE_CODE'));
-        p('done:', data)
-        p('header:', heads);
         var status = curl.getinfo('RESPONSE_CODE')
 
         curl.close();
@@ -740,23 +736,5 @@ var Client = module.exports = function(config) {
 
     curl.perform();
 
-/*  curl('https://' + options.host + options.path, curlOpts, function(err) {
-        console.log(err);
-        console.log('header', this.header)
-        console.log(this.status);
-        console.info('body', this.body);
-
-        if(err) return callback(err)
-
-            if (!callbackCalled && this.status >= 400 && this.status < 600 || this.status < 10) {
-        callbackCalled = true;
-                callback(new error.HttpError(this.body, this.status))
-            }
-            else if (!callbackCalled) {
-               callbackCalled = true;
-               callback(null, this);
-            }
-        })
-*/
     };
 }).call(Client.prototype);
