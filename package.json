@@ -18,6 +18,9 @@
     "devDependencies": {
         "oauth": "0.9.7"
     },
+    "dependencies" : {
+        "node-curl": "~0.3.1"
+    },
     "main" : ".",
     "scripts": {
         "test": "node ./test/all.js"

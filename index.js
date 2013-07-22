@@ -626,10 +626,10 @@ var Client = module.exports = function(config) {
                 query = JSON.stringify(query);
             else
                 query = query.join("&");
-            headers["content-length"] = query.length;
+            headers["content-length"] = Buffer.byteLength(query, "utf8");
             headers["content-type"] = format == "json"
-                ? "application/json"
-                : "application/x-www-form-urlencoded";
+                ? "application/json; charset=utf-8"
+                : "application/x-www-form-urlencoded; charset=utf-8";
         }
         if (this.auth) {
             var basic;
@@ -663,43 +663,100 @@ var Client = module.exports = function(config) {
             console.log("REQUEST: ", options);
 
         var self = this;
-        var req = require(protocol).request(options, function(res) {
-            if (self.debug) {
-                console.log("STATUS: " + res.statusCode);
-                console.log("HEADERS: " + JSON.stringify(res.headers));
+        var callbackCalled = false
+
+    var Curl = require('node-curl/lib/Curl')
+    var curl = new Curl({DEBUG : true})
+
+    // always https
+    var curlOpts = {FOLLOWLOCATION : 1, HEADER : 1}
+    curl.setopt('URL', 'https://' + options.host + options.path)
+    if(method === 'post') {
+        curl.setopt('POST', 1)
+        curl.setopt('POSTFIELDS', JSON.stringify(msg))
+    }
+
+    curl.setopt('CONNECTTIMEOUT', 5);
+    curl.setopt('HEADER' , true);
+    var p = console.log;
+    var data = ''
+    var heads = {}
+
+    // on 'data' must be returns chunk.length, or means interrupt the transfer
+    curl.on('data', function(chunk) {
+        var t = chunk.toString()
+        var parsedData = ''
+        var pieces = []
+        var check = false
+
+        try {
+        parsedData = JSON.parse(t)
+        }
+        catch(e) {
+        check = true
+        }
+        if(check) {
+        pieces = t.split(':');
+        console.log(pieces)
+        if(pieces.length >= 2 ) {
+            heads[pieces[0]] = pieces.slice(1).join(" ").trim()
+        }
+        }
+
+
+        if(!check && parsedData) {
+        data += chunk
+        }
+
+        return chunk.length;
+    });
+
+// curl.close() should be called in event 'error' and 'end' if the curl won't use any more.
+// or the resource will not release until V8 garbage mark sweep.
+    curl.on('error', function(e) {
+        p("error: " + e.message)
+        curl.close();
+    });
+
+    curl.on('end', function() {
+        p('code: ' + curl.getinfo('RESPONSE_CODE'));
+        p('done:', data)
+        p('header:', heads);
+        var status = curl.getinfo('RESPONSE_CODE')
+
+        curl.close();
+
+            if (!callbackCalled && status >= 400 && status < 600 || status < 10) {
+                callbackCalled = true;
+                callback(new error.HttpError(data, status))
             }
-            res.setEncoding("utf8");
-            var data = "";
-            res.on("data", function(chunk) {
-                data += chunk;
-            });
-            res.on("end", function() {
-                if (res.statusCode >= 400 && res.statusCode < 600 || res.statusCode < 10) {
-                    callback(new error.HttpError(data, res.statusCode));
-                }
-                else {
-                    res.data = data;
-                    callback(null, res);
-                }
-            });
-        });
+            else if (!callbackCalled) {
+        callbackCalled = true;
+        var res = { headers : heads, data: data }
+        callback(null, res);
+            }
 
-        if (this.config.timeout) {
-            req.setTimeout(this.config.timeout);
-        }
+    });
 
-        req.on("error", function(e) {
-            if (self.debug)
-                console.log("problem with request: " + e.message);
-            callback(e.message);
-        });
+    curl.perform();
 
-        // write data to request body
-        if (hasBody && query.length) {
-            if (self.debug)
-                console.log("REQUEST BODY: " + query + "\n");
-            req.write(query + "\n");
-        }
-        req.end();
+/*  curl('https://' + options.host + options.path, curlOpts, function(err) {
+        console.log(err);
+        console.log('header', this.header)
+        console.log(this.status);
+        console.info('body', this.body);
+
+        if(err) return callback(err)
+
+            if (!callbackCalled && this.status >= 400 && this.status < 600 || this.status < 10) {
+        callbackCalled = true;
+                callback(new error.HttpError(this.body, this.status))
+            }
+            else if (!callbackCalled) {
+               callbackCalled = true;
+               callback(null, this);
+            }
+        })
+*/
     };
 }).call(Client.prototype);
