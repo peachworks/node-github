@@ -619,17 +619,12 @@ var Client = module.exports = function(config) {
         var headers = {
             "host": host,
             "user-agent": "NodeJS HTTP Client",
-            "content-length": "0"
         };
-        if (hasBody) {
+        if (true || hasBody) {
             if (format == "json")
                 query = JSON.stringify(query);
             else
                 query = query.join("&");
-            headers["content-length"] = Buffer.byteLength(query, "utf8");
-            headers["content-type"] = format == "json"
-                ? "application/json; charset=utf-8"
-                : "application/x-www-form-urlencoded; charset=utf-8";
         }
         if (this.auth) {
             var basic;
@@ -664,77 +659,73 @@ var Client = module.exports = function(config) {
 
         var self = this;
         var callbackCalled = false
+        var Curl = require('node-curl/lib/Curl')
+        var curl = new Curl()
 
-    var Curl = require('node-curl/lib/Curl')
-    var curl = new Curl({DEBUG : true})
+        // always https
+        // curl.setopt('VERBOSE', true)
+        curl.setopt('URL', 'https://' + options.host + options.path)
 
-    // always https
-    var curlOpts = {FOLLOWLOCATION : 1, HEADER : 1}
-    curl.setopt('URL', 'https://' + options.host + options.path)
-    if(method === 'post') {
-        curl.setopt('POST', 1)
-        curl.setopt('POSTFIELDS', JSON.stringify(msg))
-    }
+        // set the headers as necessary
+        var fullHeaders = []
 
-    curl.setopt('CONNECTTIMEOUT', 5);
-    curl.setopt('HEADER' , true);
+        headers["content-type"] = "application/json; charset=utf-8"
 
-    var data = ''
-    var heads = {}
+        Object.keys(headers).forEach(function(key) {
+            var val = headers[key]
+            fullHeaders.push(key + ":" + val)
+        })
 
-    // on 'data' must be returns chunk.length, or means interrupt the transfer
-    curl.on('data', function(chunk) {
-        var t = chunk.toString()
-        var parsedData = ''
-        var pieces = []
-        var check = false
+        curl.setopt('HTTPHEADER', fullHeaders)
 
-        try {
-        parsedData = JSON.parse(t)
+        if(method === 'post') {
+            curl.setopt('POST', 1)
+            curl.setopt('POSTFIELDS', JSON.stringify(msg))
         }
-        catch(e) {
-        check = true
+        if(method === 'put') {
+            curl.setopt('CUSTOM_REQUEST', 'PUT')
+            curl.setopt('POSTFIELDS', JSON.stringify(msg))
         }
-        if(check) {
-        pieces = t.split(':');
-
-        if(pieces.length >= 2 ) {
-            heads[pieces[0]] = pieces.slice(1).join(" ").trim()
-        }
+        if(method === 'delete') {
+            curl.setopt('CUSTOM_REQUEST', 'DELETE')
         }
 
+        curl.setopt('CONNECTTIMEOUT', 5);
 
-        if(!check && parsedData) {
-        data += chunk
-        }
+        var data = ''
 
-        return chunk.length;
-    });
+        // on 'data' must be returns chunk.length, or means interrupt the transfer
+        curl.on('data', function(chunk) {
+            data += chunk
+            return chunk.length
+        })
 
-// curl.close() should be called in event 'error' and 'end' if the curl won't use any more.
-// or the resource will not release until V8 garbage mark sweep.
-    curl.on('error', function(e) {
-        curl.close();
-    });
+        // curl.close() should be called in event 'error' and 'end' if the curl won't use any more.
+        // or the resource will not release until V8 garbage mark sweep.
+        curl.on('error', function(e) {
+            curl.close()
+        });
 
-    curl.on('end', function() {
-        var status = curl.getinfo('RESPONSE_CODE')
+        curl.on('end', function() {
+            var status = curl.getinfo('RESPONSE_CODE')
+            var headerSize = curl.getinfo('HEADER_SIZE')
 
-        curl.close();
+            curl.close()
 
+            //console.log('data:', data)
+            // console.log('end st:', status)
             if (!callbackCalled && status >= 400 && status < 600 || status < 10) {
                 callbackCalled = true;
                 callback(new error.HttpError(data, status))
             }
             else if (!callbackCalled) {
-        callbackCalled = true;
-        var res = { headers : heads, data: data }
-        callback(null, res);
+                callbackCalled = true;
+                var res = { headers : {}, data: data }
+                callback(null, res);
             }
+        });
 
-    });
-
-    curl.perform();
+        curl.perform();
 
     };
 }).call(Client.prototype);
