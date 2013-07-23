@@ -597,6 +597,7 @@ var Client = module.exports = function(config) {
      **/
     this.httpSend = function(msg, block, callback) {
         var method = block.method.toLowerCase();
+
         var hasBody = ("head|get|delete".indexOf(method) === -1);
         var format = hasBody && this.constants.requestFormat
             ? this.constants.requestFormat
@@ -683,11 +684,15 @@ var Client = module.exports = function(config) {
             curl.setopt('POSTFIELDS', JSON.stringify(msg))
         }
         if(method === 'put') {
-            curl.setopt('CUSTOM_REQUEST', 'PUT')
+            curl.setopt('CUSTOMREQUEST', 'PUT')
+            curl.setopt('POSTFIELDS', JSON.stringify(msg))
+        }
+        if(method === 'patch') {
+            curl.setopt('CUSTOMREQUEST', 'PATCH')
             curl.setopt('POSTFIELDS', JSON.stringify(msg))
         }
         if(method === 'delete') {
-            curl.setopt('CUSTOM_REQUEST', 'DELETE')
+            curl.setopt('CUSTOMREQUEST', 'DELETE')
         }
 
         curl.setopt('CONNECTTIMEOUT', 5);
