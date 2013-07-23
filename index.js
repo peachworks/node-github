@@ -597,6 +597,7 @@ var Client = module.exports = function(config) {
      **/
     this.httpSend = function(msg, block, callback) {
         var method = block.method.toLowerCase();
+
         var hasBody = ("head|get|delete".indexOf(method) === -1);
         var format = hasBody && this.constants.requestFormat
             ? this.constants.requestFormat
@@ -619,17 +620,12 @@ var Client = module.exports = function(config) {
         var headers = {
             "host": host,
             "user-agent": "NodeJS HTTP Client",
-            "content-length": "0"
         };
-        if (hasBody) {
+        if (true || hasBody) {
             if (format == "json")
                 query = JSON.stringify(query);
             else
                 query = query.join("&");
-            headers["content-length"] = query.length;
-            headers["content-type"] = format == "json"
-                ? "application/json"
-                : "application/x-www-form-urlencoded";
         }
         if (this.auth) {
             var basic;
@@ -663,43 +659,78 @@ var Client = module.exports = function(config) {
             console.log("REQUEST: ", options);
 
         var self = this;
-        var req = require(protocol).request(options, function(res) {
-            if (self.debug) {
-                console.log("STATUS: " + res.statusCode);
-                console.log("HEADERS: " + JSON.stringify(res.headers));
+        var callbackCalled = false
+        var Curl = require('node-curl/lib/Curl')
+        var curl = new Curl()
+
+        // always https
+        // curl.setopt('VERBOSE', true)
+        curl.setopt('URL', 'https://' + options.host + options.path)
+
+        // set the headers as necessary
+        var fullHeaders = []
+
+        headers["content-type"] = "application/json; charset=utf-8"
+
+        Object.keys(headers).forEach(function(key) {
+            var val = headers[key]
+            fullHeaders.push(key + ":" + val)
+        })
+
+        curl.setopt('HTTPHEADER', fullHeaders)
+
+        if(method === 'post') {
+            curl.setopt('POST', 1)
+            curl.setopt('POSTFIELDS', JSON.stringify(msg))
+        }
+        if(method === 'put') {
+            curl.setopt('CUSTOMREQUEST', 'PUT')
+            curl.setopt('POSTFIELDS', JSON.stringify(msg))
+        }
+        if(method === 'patch') {
+            curl.setopt('CUSTOMREQUEST', 'PATCH')
+            curl.setopt('POSTFIELDS', JSON.stringify(msg))
+        }
+        if(method === 'delete') {
+            curl.setopt('CUSTOMREQUEST', 'DELETE')
+        }
+
+        curl.setopt('CONNECTTIMEOUT', 5);
+
+        var data = ''
+
+        // on 'data' must be returns chunk.length, or means interrupt the transfer
+        curl.on('data', function(chunk) {
+            data += chunk
+            return chunk.length
+        })
+
+        // curl.close() should be called in event 'error' and 'end' if the curl won't use any more.
+        // or the resource will not release until V8 garbage mark sweep.
+        curl.on('error', function(e) {
+            curl.close()
+        });
+
+        curl.on('end', function() {
+            var status = curl.getinfo('RESPONSE_CODE')
+            var headerSize = curl.getinfo('HEADER_SIZE')
+
+            curl.close()
+
+            //console.log('data:', data)
+            // console.log('end st:', status)
+            if (!callbackCalled && status >= 400 && status < 600 || status < 10) {
+                callbackCalled = true;
+                callback(new error.HttpError(data, status))
             }
-            res.setEncoding("utf8");
-            var data = "";
-            res.on("data", function(chunk) {
-                data += chunk;
-            });
-            res.on("end", function() {
-                if (res.statusCode >= 400 && res.statusCode < 600 || res.statusCode < 10) {
-                    callback(new error.HttpError(data, res.statusCode));
-                }
-                else {
-                    res.data = data;
-                    callback(null, res);
-                }
-            });
+            else if (!callbackCalled) {
+                callbackCalled = true;
+                var res = { headers : {}, data: data }
+                callback(null, res);
+            }
         });
 
-        if (this.config.timeout) {
-            req.setTimeout(this.config.timeout);
-        }
+        curl.perform();
 
-        req.on("error", function(e) {
-            if (self.debug)
-                console.log("problem with request: " + e.message);
-            callback(e.message);
-        });
-
-        // write data to request body
-        if (hasBody && query.length) {
-            if (self.debug)
-                console.log("REQUEST BODY: " + query + "\n");
-            req.write(query + "\n");
-        }
-        req.end();
     };
 }).call(Client.prototype);
