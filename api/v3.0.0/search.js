@@ -1,12 +1,12 @@
-/** 
+/**
  *  mixin search
- * 
+ *
  *  Copyright 2012 Cloud9 IDE, Inc.
  *
  *  This product includes software developed by
  *  Cloud9 IDE, Inc (http://c9.io).
  *
- *  Author: Mike de Boer <mike@c9.io>
+ *  Author: Mike de Boer <info@mikedeboer.nl>
  **/
 
 "use strict";
@@ -26,6 +26,7 @@ var search = module.exports = {
      * 
      *  ##### Params on the `msg` object:
      * 
+     *  - headers (Object): Optional. Key/ value pair of request headers to pass along with the HTTP request. Valid headers are: 'If-Modified-Since', 'If-None-Match', 'Cookie', 'User-Agent'.
      *  - user (String): Required. 
      *  - repo (String): Required. 
      *  - state (String): Required. open or closed Validation rule: ` ^(open|closed)$ `.
@@ -51,7 +52,7 @@ var search = module.exports = {
                 ret = {};
             if (!ret.meta)
                 ret.meta = {};
-            ["x-ratelimit-limit", "x-ratelimit-remaining", "x-oauth-scopes", "link"].forEach(function(header) {
+            ["x-ratelimit-limit", "x-ratelimit-remaining", "x-oauth-scopes", "link", "location", "last-modified", "etag", "status"].forEach(function(header) {
                 if (res.headers[header])
                     ret.meta[header] = res.headers[header];
             });
@@ -68,6 +69,7 @@ var search = module.exports = {
      * 
      *  ##### Params on the `msg` object:
      * 
+     *  - headers (Object): Optional. Key/ value pair of request headers to pass along with the HTTP request. Valid headers are: 'If-Modified-Since', 'If-None-Match', 'Cookie', 'User-Agent'.
      *  - keyword (String): Required. Search term 
      *  - language (String): Optional. Filter results by language, see https://github.com/languages 
      *  - start_page (Number): Optional. Page number to fetch Validation rule: ` ^[0-9]+$ `.
@@ -92,7 +94,7 @@ var search = module.exports = {
                 ret = {};
             if (!ret.meta)
                 ret.meta = {};
-            ["x-ratelimit-limit", "x-ratelimit-remaining", "x-oauth-scopes", "link"].forEach(function(header) {
+            ["x-ratelimit-limit", "x-ratelimit-remaining", "x-oauth-scopes", "link", "location", "last-modified", "etag", "status"].forEach(function(header) {
                 if (res.headers[header])
                     ret.meta[header] = res.headers[header];
             });
@@ -109,7 +111,9 @@ var search = module.exports = {
      * 
      *  ##### Params on the `msg` object:
      * 
+     *  - headers (Object): Optional. Key/ value pair of request headers to pass along with the HTTP request. Valid headers are: 'If-Modified-Since', 'If-None-Match', 'Cookie', 'User-Agent'.
      *  - keyword (String): Required. Keyword search parameters 
+     *  - start_page (Number): Optional. Page number to fetch Validation rule: ` ^[0-9]+$ `.
      **/
     this.users = function(msg, block, callback) {
         var self = this;
@@ -131,7 +135,7 @@ var search = module.exports = {
                 ret = {};
             if (!ret.meta)
                 ret.meta = {};
-            ["x-ratelimit-limit", "x-ratelimit-remaining", "x-oauth-scopes", "link"].forEach(function(header) {
+            ["x-ratelimit-limit", "x-ratelimit-remaining", "x-oauth-scopes", "link", "location", "last-modified", "etag", "status"].forEach(function(header) {
                 if (res.headers[header])
                     ret.meta[header] = res.headers[header];
             });
@@ -148,6 +152,7 @@ var search = module.exports = {
      * 
      *  ##### Params on the `msg` object:
      * 
+     *  - headers (Object): Optional. Key/ value pair of request headers to pass along with the HTTP request. Valid headers are: 'If-Modified-Since', 'If-None-Match', 'Cookie', 'User-Agent'.
      *  - email (String): Required. Email address 
      **/
     this.email = function(msg, block, callback) {
@@ -170,7 +175,7 @@ var search = module.exports = {
                 ret = {};
             if (!ret.meta)
                 ret.meta = {};
-            ["x-ratelimit-limit", "x-ratelimit-remaining", "x-oauth-scopes", "link"].forEach(function(header) {
+            ["x-ratelimit-limit", "x-ratelimit-remaining", "x-oauth-scopes", "link", "location", "last-modified", "etag", "status"].forEach(function(header) {
                 if (res.headers[header])
                     ret.meta[header] = res.headers[header];
             });

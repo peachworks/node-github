@@ -13,7 +13,17 @@
             "X-RateLimit-Limit",
             "X-RateLimit-Remaining",
             "X-Oauth-Scopes",
-            "Link"
+            "Link",
+            "Location",
+            "Last-Modified",
+            "Etag",
+            "Status"
+        ],
+        "request-headers": [
+            "If-Modified-Since",
+            "If-None-Match",
+            "Cookie",
+            "User-Agent"
         ],
         "params": {
             "files": {
@@ -291,7 +301,8 @@
             "method": "GET",
             "params": {
                 "$page": null,
-                "$per_page": null
+                "$per_page": null,
+                "$since": null
             }
         },
 
@@ -301,7 +312,8 @@
             "params": {
                 "$user": null,
                 "$page": null,
-                "$per_page": null
+                "$per_page": null,
+                "$since": null
             }
         },
 
@@ -334,13 +346,17 @@
         "public": {
             "url": "/gists/public",
             "method": "GET",
-            "params": {}
+            "params": {
+                "$since": null
+            }
         },
 
         "starred": {
             "url": "/gists/starred",
             "method": "GET",
-            "params": {}
+            "params": {
+                "$since": null
+            }
         },
 
         "get": {
@@ -645,7 +661,7 @@
                 "filter": {
                     "type": "String",
                     "required": false,
-                    "validation": "^(assigned|created|mentioned|subscribed)$",
+                    "validation": "^(all|assigned|created|mentioned|subscribed)$",
                     "invalidmsg": "",
                     "description": ""
                 },
@@ -789,7 +805,7 @@
                 "$number": null,
                 "title": {
                     "type": "String",
-                    "required": true,
+                    "required": false,
                     "validation": "",
                     "invalidmsg": "",
                     "description": ""
@@ -817,7 +833,7 @@
                 },
                 "labels": {
                     "type": "Json",
-                    "required": true,
+                    "required": false,
                     "validation": "",
                     "invalidmsg": "",
                     "description": "Optional array of strings - Labels to associate with this issue."
@@ -829,6 +845,26 @@
                     "invalidmsg": "open, closed, default: open",
                     "description": "open or closed"
                 }
+            }
+        },
+
+        "repo-comments": {
+            "url": "/repos/:user/:repo/issues/comments",
+            "method": "GET",
+            "params": {
+                "$user": null,
+                "$repo": null,
+                "sort": {
+                    "type": "String",
+                    "required": false,
+                    "validation": "^(created|updated)$",
+                    "invalidmsg": "created, updated, default: created.",
+                    "description": ""
+                },
+                "$direction": null,
+                "$since": null,
+                "$page": null,
+                "$per_page": null
             }
         },
 
@@ -2103,6 +2139,7 @@
             "params": {
                 "$user": null,
                 "$repo": null,
+                "$ref": null,
                 "archive_format": {
                     "type": "String",
                     "required": true,
@@ -2229,6 +2266,65 @@
                 "$user": null,
                 "$repo": null,
                 "$id": null
+            }
+        },
+
+        "get-stargazers": {
+            "url": "/repos/:user/:repo/stargazers",
+            "method": "GET",
+            "params": {
+                "$user": null,
+                "$repo": null,
+                "$page": null,
+                "$per_page": null
+            }
+        },
+
+        "get-starred": { 
+            "url": "/user/starred",
+            "method": "GET",
+            "params": {
+                "$page": null,
+                "$per_page": null
+            }
+        },
+
+        "get-starred-from-user": {
+            "url": "/users/:user/starred",
+            "method": "GET",
+            "params": {
+                "$user": null,
+                "$page": null,
+                "$per_page": null
+            }
+        },
+
+        "get-starring": {
+            "url": "/user/starred/:user/:repo",
+            "method": "GET",
+            "params": {
+                "$user": null,
+                "$repo": null,
+                "$page": null,
+                "$per_page": null
+            }
+        },
+
+        "star": {
+            "url": "/user/starred/:user/:repo",
+            "method": "PUT",
+            "params": {
+                "$user": null,
+                "$repo": null
+            }
+        },
+
+        "un-star": {
+            "url": "/user/starred/:user/:repo",
+            "method": "DELETE",
+            "params": {
+                "$user": null,
+                "$repo": null
             }
         },
 
@@ -2777,6 +2873,13 @@
                     "validation": "",
                     "invalidmsg": "",
                     "description": "Keyword search parameters"
+                },
+                "start_page": {
+                    "type": "Number",
+                    "required": false,
+                    "validation": "^[0-9]+$",
+                    "invalidmsg": "",
+                    "description": "Page number to fetch"
                 }
             }
         },

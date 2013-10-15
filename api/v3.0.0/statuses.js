@@ -1,12 +1,12 @@
-/** 
+/**
  *  mixin statuses
- * 
+ *
  *  Copyright 2012 Cloud9 IDE, Inc.
  *
  *  This product includes software developed by
  *  Cloud9 IDE, Inc (http://c9.io).
  *
- *  Author: Mike de Boer <mike@c9.io>
+ *  Author: Mike de Boer <info@mikedeboer.nl>
  **/
 
 "use strict";
@@ -26,6 +26,7 @@ var statuses = module.exports = {
      * 
      *  ##### Params on the `msg` object:
      * 
+     *  - headers (Object): Optional. Key/ value pair of request headers to pass along with the HTTP request. Valid headers are: 'If-Modified-Since', 'If-None-Match', 'Cookie', 'User-Agent'.
      *  - user (String): Required. 
      *  - repo (String): Required. 
      *  - sha (String): Required. 
@@ -50,7 +51,7 @@ var statuses = module.exports = {
                 ret = {};
             if (!ret.meta)
                 ret.meta = {};
-            ["x-ratelimit-limit", "x-ratelimit-remaining", "x-oauth-scopes", "link"].forEach(function(header) {
+            ["x-ratelimit-limit", "x-ratelimit-remaining", "x-oauth-scopes", "link", "location", "last-modified", "etag", "status"].forEach(function(header) {
                 if (res.headers[header])
                     ret.meta[header] = res.headers[header];
             });
@@ -67,6 +68,7 @@ var statuses = module.exports = {
      * 
      *  ##### Params on the `msg` object:
      * 
+     *  - headers (Object): Optional. Key/ value pair of request headers to pass along with the HTTP request. Valid headers are: 'If-Modified-Since', 'If-None-Match', 'Cookie', 'User-Agent'.
      *  - user (String): Required. 
      *  - repo (String): Required. 
      *  - sha (String): Required. 
@@ -94,7 +96,7 @@ var statuses = module.exports = {
                 ret = {};
             if (!ret.meta)
                 ret.meta = {};
-            ["x-ratelimit-limit", "x-ratelimit-remaining", "x-oauth-scopes", "link"].forEach(function(header) {
+            ["x-ratelimit-limit", "x-ratelimit-remaining", "x-oauth-scopes", "link", "location", "last-modified", "etag", "status"].forEach(function(header) {
                 if (res.headers[header])
                     ret.meta[header] = res.headers[header];
             });

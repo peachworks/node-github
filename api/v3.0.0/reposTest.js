@@ -4,7 +4,7 @@
  * This product includes software developed by
  * Cloud9 IDE, Inc (http://c9.io).
  *
- * Author: Mike de Boer <mike@c9.io>
+ * Author: Mike de Boer <info@mikedeboer.nl>
  */
 
 "use strict";
@@ -688,6 +688,95 @@ describe("[repos]", function() {
                 user: "String",
                 repo: "String",
                 id: "String"
+            },
+            function(err, res) {
+                Assert.equal(err, null);
+                // other assertions go here
+                next();
+            }
+        );
+    });
+
+    it("should successfully execute GET /repos/:user/:repo/stargazers (getStargazers)",  function(next) {
+        client.repos.getStargazers(
+            {
+                user: "String",
+                repo: "String",
+                page: "Number",
+                per_page: "Number"
+            },
+            function(err, res) {
+                Assert.equal(err, null);
+                // other assertions go here
+                next();
+            }
+        );
+    });
+
+    it("should successfully execute GET /user/starred (getStarred)",  function(next) {
+        client.repos.getStarred(
+            {
+                page: "Number",
+                per_page: "Number"
+            },
+            function(err, res) {
+                Assert.equal(err, null);
+                // other assertions go here
+                next();
+            }
+        );
+    });
+
+    it("should successfully execute GET /users/:user/starred (getStarredFromUser)",  function(next) {
+        client.repos.getStarredFromUser(
+            {
+                user: "String",
+                page: "Number",
+                per_page: "Number"
+            },
+            function(err, res) {
+                Assert.equal(err, null);
+                // other assertions go here
+                next();
+            }
+        );
+    });
+
+    it("should successfully execute GET /user/starred/:user/:repo (getStarring)",  function(next) {
+        client.repos.getStarring(
+            {
+                user: "String",
+                repo: "String",
+                page: "Number",
+                per_page: "Number"
+            },
+            function(err, res) {
+                Assert.equal(err, null);
+                // other assertions go here
+                next();
+            }
+        );
+    });
+
+    it("should successfully execute PUT /user/starred/:user/:repo (watch)",  function(next) {
+        client.repos.watch(
+            {
+                user: "String",
+                repo: "String"
+            },
+            function(err, res) {
+                Assert.equal(err, null);
+                // other assertions go here
+                next();
+            }
+        );
+    });
+
+    it("should successfully execute DELETE /user/starred/:user/:repo (unWatch)",  function(next) {
+        client.repos.unWatch(
+            {
+                user: "String",
+                repo: "String"
             },
             function(err, res) {
                 Assert.equal(err, null);

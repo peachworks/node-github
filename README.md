@@ -12,13 +12,13 @@ or
 
   Install via git clone:
 
-      $ git clone git://github.com/ajaxorg/node-github.git
+      $ git clone git://github.com/mikedeboer/node-github.git
       $ cd node-github
       $ npm install
 
 ## Documentation
 
-You can find the docs for the API of this client at [http://ajaxorg.github.com/node-github/](http://ajaxorg.github.com/node-github/)
+You can find the docs for the API of this client at [http://mikedeboer.github.com/node-github/](http://mikedeboer.github.com/node-github/)
 
 Additionally, the [official Github documentation](http://developer.github.com/)
 is a very useful resource.
@@ -26,20 +26,28 @@ is a very useful resource.
 ## Example
 
 Print all followers of the user "mikedeboer" to the console.
+```javascript
+var GitHubApi = require("github");
 
-    var GitHubApi = require("github");
-
-    var github = new GitHubApi({
-        // required
-        version: "3.0.0",
-        // optional
-        timeout: 5000
-    });
-    github.user.getFollowingFromUser({
-        user: "mikedeboer"
-    }, function(err, res) {
-        console.log(JSON.stringify(res));
-    });
+var github = new GitHubApi({
+    // required
+    version: "3.0.0",
+    // optional
+    debug: true,
+    protocol: "https",
+    host: "github.my-GHE-enabled-company.com",
+    timeout: 5000
+});
+github.user.getFollowingFromUser({
+    // optional:
+    // headers: {
+    //     "cookie": "blahblah"
+    // },
+    user: "mikedeboer"
+}, function(err, res) {
+    console.log(JSON.stringify(res));
+});
+```
 
 First the _GitHubApi_ class is imported from the _node-github_ module. This class provides
 access to all of GitHub's APIs (e.g. user, issues or repo APIs). The _getFollowingFromUser_
@@ -62,34 +70,35 @@ be found in the user's _Account Settings_ page.
 
 This example shows how to authenticate and then change _location_ field of the
 account settings to _Argentina_:
-
-    github.authenticate({
-        type: "basic",
-        username: username,
-        password: password
-    });
-    github.user.update({
-        location: "Argentina"
-    }, function(err) {
-        console.log("done!");
-    });
-
+```javascript
+github.authenticate({
+    type: "basic",
+    username: username,
+    password: password
+});
+github.user.update({
+    location: "Argentina"
+}, function(err) {
+    console.log("done!");
+});
+```
 Note that the _authenticate_ method is synchronous because it only stores the
 credentials for the next request.
 
 Other examples for the various authentication methods:
+```javascript
+// OAuth2
+github.authenticate({
+    type: "oauth",
+    token: token
+});
 
-    // OAuth2
-    github.authenticate({
-        type: "oauth",
-        token: token
-    });
-
-    // Deprecated Gihub API token (seems not to be working with the v3 API)
-    github.authenticate({
-        type: "token",
-        token: token
-    });
+// Deprecated Gihub API token (seems not to be working with the v3 API)
+github.authenticate({
+    type: "token",
+    token: token
+});
+```
 
 ## Implemented GitHub APIs
 
@@ -111,13 +120,13 @@ module, which may be installed via npm. To run the tests make sure that the
 npm dependencies are installed by running `npm install` from the project directory.
 
 Before running unit tests:
-
-    npm install mocha -g
-
+```shell
+npm install mocha -g
+```
 At the moment, test classes can only be run separately. This will e.g. run the Issues Api test:
-
-    mocha api/v3.0.0/issuesTest.js
-
+```shell
+mocha api/v3.0.0/issuesTest.js
+```
 Note that a connection to the internet is required to run the tests.
 
 ## LICENSE

@@ -4,7 +4,7 @@
  * This product includes software developed by
  * Cloud9 IDE, Inc (http://c9.io).
  *
- * Author: Mike de Boer <mike@c9.io>
+ * Author: Mike de Boer <info@mikedeboer.nl>
  */
 
 "use strict";
@@ -29,9 +29,9 @@ describe("[statuses]", function() {
     it("should successfully execute GET /repos/:user/:repo/statuses/:sha (get)",  function(next) {
         client.statuses.get(
             {
-                user: "String",
-                repo: "String",
-                sha: "String"
+                user: "mikedeboer",
+                repo: "node-github",
+                sha: "30d607d8fd8002427b61273f25d442c233cbf631"
             },
             function(err, res) {
                 Assert.equal(err, null);
